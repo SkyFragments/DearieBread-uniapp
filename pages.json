@@ -1,17 +1,139 @@
 {
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
 		{
-			"path": "pages/index/index",
+			"path": "pages/home/index",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "Dearie Bread",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/myOrders/index",
+			"style": {
+				"navigationBarTitleText": "我的订单",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/productDetail/index",
+			"style": {
+				"navigationBarTitleText": "商品详情",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/cart/index",
+			"style": {
+				"navigationBarTitleText": "购物车",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/checkout/index",
+			"style": {
+				"navigationBarTitleText": "确认订单",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/orderTracking/index",
+			"style": {
+				"navigationBarTitleText": "订单追踪",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/member/index",
+			"style": {
+				"navigationBarTitleText": "会员中心",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/store/index",
+			"style": {
+				"navigationBarTitleText": "门店列表",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/couponCenter/index",
+			"style": {
+				"navigationBarTitleText": "优惠券中心",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/pointsDetail/index",
+			"style": {
+				"navigationBarTitleText": "积分明细",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/productList/index",
+			"style": {
+				"navigationBarTitleText": "商品列表",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
+			}
+		},
+		{
+			"path": "pages/payment/index",
+			"style": {
+				"navigationBarTitleText": "收银台",
+				"navigationBarBackgroundColor": "#8B4513",
+				"navigationBarTextStyle": "white"
 			}
 		}
 	],
 	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarTitleText": "uni-app",
-		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"navigationBarTextStyle": "white",
+		"navigationBarTitleText": "Dearie Bread",
+		"navigationBarBackgroundColor": "#8B4513",
+		"backgroundColor": "#FFF8F0"
+	},
+	"tabBar": {
+		"color": "#4A3728",
+		"selectedColor": "#D4A574",
+		"backgroundColor": "#FFF8F0",
+		"borderStyle": "black",
+		"list": [
+			{
+				"pagePath": "pages/home/index",
+				"text": "首页",
+				"iconPath": "static/tabbar/home.png",
+				"selectedIconPath": "static/tabbar/home-active.png"
+			},
+			{
+				"pagePath": "pages/myOrders/index",
+				"text": "订单",
+				"iconPath": "static/tabbar/order.png",
+				"selectedIconPath": "static/tabbar/order-active.png"
+			},
+			{
+				"pagePath": "pages/cart/index",
+				"text": "购物车",
+				"iconPath": "static/tabbar/cart.png",
+				"selectedIconPath": "static/tabbar/cart-active.png"
+			},
+			{
+				"pagePath": "pages/member/index",
+				"text": "我的",
+				"iconPath": "static/tabbar/member.png",
+				"selectedIconPath": "static/tabbar/member-active.png"
+			}
+		]
 	},
 	"uniIdRouter": {}
 }
