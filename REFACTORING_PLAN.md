@@ -22,6 +22,8 @@
 
 **综合完成度: ~55%**
 
+> ⚠️ **更新 (2026-05-02)**: H5 构建问题已修复，补充了缺失的 `order.png` 和 `order-active.png` tabbar 图标。
+
 ### 1.2 前端页面详情
 
 | 页面 | 行数 | 完成度 | 主要问题 |
@@ -57,7 +59,7 @@
 ### 1.4 关键问题
 
 1. **CRITICAL**: 前端所有页面使用 hardcoded mock 数据，后端 API 完全未被调用
-2. **HIGH**: `npm run build:h5` 构建失败（缺少 `order.png`, `order-active.png` 图标）
+2. ~~**HIGH**: `npm run build:h5` 构建失败（缺少 `order.png`, `order-active.png` 图标）~~ ✅ **已修复**
 3. **HIGH**: 缺少 `src/api/` API 客户端层
 4. **HIGH**: 缺少 `src/utils/` 工具函数层
 
