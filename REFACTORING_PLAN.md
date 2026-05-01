@@ -21,26 +21,30 @@
 | 前后端集成 | **100%** | ✅ 所有页面已对接真实 API |
 | 构建能力 | **100%** | ✅ H5 构建成功 |
 
-**综合完成度: ~55%**
+**综合完成度: ~95%**
 
-> ⚠️ **更新 (2026-05-02)**: H5 构建问题已修复，补充了缺失的 `order.png` 和 `order-active.png` tabbar 图标。
+> ⚠️ **更新 (2026-05-02 03:30)**: 
+> - 添加下拉刷新支持 (onPullDownRefresh) 到所有列表页面
+> - 完成 Taro 版本的 API 层建设 (src/api/)
+> - 修复 app.json 中 tabbar 图标路径
+> - 添加缺失页面到 Taro app.json
 
 ### 1.2 前端页面详情
 
 | 页面 | 行数 | 完成度 | 主要问题 |
 |------|------|--------|----------|
-| 首页 (home) | 154 | 75% | mock 数据，无 API 调用 |
-| 商品列表 (productList) | 101 | 70% | mock 数据，无筛选 API 集成 |
-| 商品详情 (productDetail) | 152 | 80% | mock 数据，UI 完整 |
-| 购物车 (cart) | 177 | 80% | 状态管理完整，无 API 调用 |
-| 订单确认 (checkout) | 176 | 75% | mock 数据，无 API 调用 |
-| 订单追踪 (orderTracking) | 145 | 80% | UI 完整（进度条/取餐码） |
-| 会员中心 (member) | 159 | 85% | UI 最完整，会员等级/积分/营养档案 |
-| 我的订单 (myOrders) | 133 | 75% | Tab 切换，mock 订单列表 |
-| 门店列表 (store) | 98 | 70% | mock 数据，无地图集成 |
-| 优惠券中心 (couponCenter) | 114 | 75% | mock 优惠券，UI 完整 |
-| 收银台 (payment) | 72 | 60% | 简单 UI，无微信支付集成 |
-| 积分明细 (pointsDetail) | 107 | 75% | mock 积分记录 |
+| 首页 (home) | 160 | 90% | API 已集成，下拉刷新 |
+| 商品列表 (productList) | 180 | 90% | API 已集成，下拉刷新 |
+| 商品详情 (productDetail) | 165 | 90% | API 已集成，下拉刷新 |
+| 购物车 (cart) | 185 | 95% | 状态管理完整，API 已集成 |
+| 订单确认 (checkout) | 190 | 95% | API 已集成 |
+| 订单追踪 (orderTracking) | 155 | 90% | API 已集成 |
+| 会员中心 (member) | 175 | 95% | API 已集成 |
+| 我的订单 (myOrders) | 300 | 90% | API 已集成，下拉刷新 |
+| 门店列表 (store) | 200 | 90% | API 已集成，下拉刷新 |
+| 优惠券中心 (couponCenter) | 210 | 90% | API 已集成，下拉刷新 |
+| 收银台 (payment) | 85 | 70% | 微信支付需商户配置 |
+| 积分明细 (pointsDetail) | 140 | 90% | API 已集成，下拉刷新 |
 
 ### 1.3 后端 API 覆盖
 
@@ -59,10 +63,11 @@
 
 ### 1.4 关键问题
 
-1. **CRITICAL**: 前端所有页面使用 hardcoded mock 数据，后端 API 完全未被调用
+1. ~~**CRITICAL**: 前端所有页面使用 hardcoded mock 数据，后端 API 完全未被调用~~ ✅ **已修复 (2026-05-02)**
 2. ~~**HIGH**: `npm run build:h5` 构建失败（缺少 `order.png`, `order-active.png` 图标）~~ ✅ **已修复**
-3. **HIGH**: 缺少 `src/api/` API 客户端层
-4. **HIGH**: 缺少 `src/utils/` 工具函数层
+3. ~~**HIGH**: 缺少 `src/api/` API 客户端层~~ ✅ **已修复 (Taro 版本)**
+4. ~~**HIGH**: 缺少 `src/utils/` 工具函数层~~ ✅ **已修复 (UniApp 版本)**
+5. **MEDIUM**: 收银台 (payment) 微信支付需要商户号配置
 
 ---
 
