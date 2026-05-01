@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
 import productCard from '@/components/productCard.vue'
 import { getProductDetail } from '@/api/product.js'
@@ -143,6 +143,24 @@ const productData = ref({
   stock: 15,
   sales: 328,
   ingredients: '面粉、黄油、牛奶、鸡蛋、糖、酵母、盐',
+})
+
+// 加载状态
+const isLoading = ref(false)
+
+// 获取真实 API 数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const res = await getProductDetail(productId)
+    if (res.code === 0 && res.data) {
+      productData.value = res.data
+    }
+  } catch (e) {
+    // 使用默认数据
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // 数量

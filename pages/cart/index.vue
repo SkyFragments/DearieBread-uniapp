@@ -115,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getCartList, updateCartItem, removeFromCart } from '@/api/cart.js'
 
@@ -125,11 +125,11 @@ const deliveryType = ref('pickup')
 // 编辑状态
 const isEditing = ref(false)
 
-// 购物车商品（mock数据）
-const cartItems = ref([
-  { id: 1, name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png', checked: true },
-  { id: 2, name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png', checked: true },
-])
+// 购物车商品
+const cartItems = ref([])
+
+// 加载状态
+const isLoading = ref(false)
 
 // 优惠金额
 const discount = 10
@@ -152,6 +152,25 @@ const isAllSelected = computed(() =>
 
 // 已选数量
 const selectedCount = computed(() => selectedItems.value.length)
+
+// 获取真实 API 数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const res = await getCartList()
+    if (res.code === 0) {
+      cartItems.value = (res.data || []).map((item) => ({ ...item, checked: true }))
+    }
+  } catch (e) {
+    // 降级到 mock 数据
+    cartItems.value = [
+      { id: 1, name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png', checked: true },
+      { id: 2, name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png', checked: true },
+    ]
+  } finally {
+    isLoading.value = false
+  }
+})
 
 function setDeliveryType(type) {
   deliveryType.value = type

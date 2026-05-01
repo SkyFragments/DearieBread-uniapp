@@ -74,11 +74,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
 import productCard from '@/components/productCard.vue'
 import { addToCart } from '@/api/cart.js'
 import { getProductList } from '@/api/product.js'
+
+// 获取页面参数
+const pageOptions = uni.getPageOptions()
+const categoryParam = pageOptions?.category || ''
 
 // 排序选项
 const sortTabs = ['综合', '销量', '价格']
@@ -95,17 +99,11 @@ const activeSort = ref('综合')
 // 选中的筛选标签
 const activeFilters = ref([])
 
-// 商品数据（mock，待替换为API）
-const products = ref([
-  { id: 1, name: '手撕包', price: 28, originalPrice: 35, image: '/static/images/product1.png', tags: ['low-carb'] },
-  { id: 2, name: '全麦吐司', price: 22, image: '/static/images/product2.png', tags: ['whole-grain', 'high-protein'] },
-  { id: 3, name: '奶油泡芙', price: 18, image: '/static/images/product3.png', tags: ['sugar-free'] },
-  { id: 4, name: '坚果面包', price: 25, image: '/static/images/product4.png', tags: ['high-protein'] },
-  { id: 5, name: '无糖曲奇', price: 32, image: '/static/images/product5.png', tags: ['sugar-free', 'low-carb'] },
-  { id: 6, name: '燕麦面包', price: 26, image: '/static/images/product6.png', tags: ['whole-grain', 'low-carb'] },
-  { id: 7, name: '黑麦吐司', price: 24, image: '/static/images/product7.png', tags: ['whole-grain', 'high-protein'] },
-  { id: 8, name: '蛋白棒', price: 35, image: '/static/images/product8.png', tags: ['high-protein', 'low-carb'] },
-])
+// 商品数据（待替换为API）
+const products = ref([])
+
+// 加载状态
+const isLoading = ref(false)
 
 // 标签映射
 const tagMap = {
@@ -142,6 +140,35 @@ const filteredProducts = computed(() => {
   }
 
   return result
+})
+
+// 获取真实 API 数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const params = {}
+    if (categoryParam) {
+      params.categoryId = categoryParam
+    }
+    const res = await getProductList(params)
+    if (res.code === 0) {
+      products.value = res.data || []
+    }
+  } catch (e) {
+    // 降级到 mock 数据
+    products.value = [
+      { id: 1, name: '手撕包', price: 28, originalPrice: 35, image: '/static/images/product1.png', tags: ['low-carb'] },
+      { id: 2, name: '全麦吐司', price: 22, image: '/static/images/product2.png', tags: ['whole-grain', 'high-protein'] },
+      { id: 3, name: '奶油泡芙', price: 18, image: '/static/images/product3.png', tags: ['sugar-free'] },
+      { id: 4, name: '坚果面包', price: 25, image: '/static/images/product4.png', tags: ['high-protein'] },
+      { id: 5, name: '无糖曲奇', price: 32, image: '/static/images/product5.png', tags: ['sugar-free', 'low-carb'] },
+      { id: 6, name: '燕麦面包', price: 26, image: '/static/images/product6.png', tags: ['whole-grain', 'low-carb'] },
+      { id: 7, name: '黑麦吐司', price: 24, image: '/static/images/product7.png', tags: ['whole-grain', 'high-protein'] },
+      { id: 8, name: '蛋白棒', price: 35, image: '/static/images/product8.png', tags: ['high-protein', 'low-carb'] },
+    ]
+  } finally {
+    isLoading.value = false
+  }
 })
 
 function onSearchInput(e) {

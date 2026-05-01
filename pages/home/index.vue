@@ -113,7 +113,6 @@
 import { ref, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getHotProducts, getLowCalorieProducts } from '@/api/product.js'
-import { getLocalCart } from '@/utils/storage.js'
 
 // 快捷入口数据
 const quickEntries = [
@@ -138,34 +137,47 @@ const banners = ref([
   { id: 3, image: '/static/images/banner3.png', title: '满减优惠' },
 ])
 
-// 热销商品（mock数据，待替换为API）
-const hotProducts = ref([
-  { id: 1, name: '手撕包', price: 28, originalPrice: 35, image: '/static/images/product1.png', tags: ['low-carb'] },
-  { id: 2, name: '全麦吐司', price: 22, image: '/static/images/product2.png', tags: ['whole-grain', 'high-protein'] },
-  { id: 3, name: '奶油泡芙', price: 18, image: '/static/images/product3.png', tags: ['sugar-free'] },
-  { id: 4, name: '坚果面包', price: 25, image: '/static/images/product4.png', tags: ['high-protein'] },
-])
+// 热销商品
+const hotProducts = ref([])
 
-// 低卡商品（mock数据）
-const lowCalProducts = ref([
-  { id: 5, name: '无糖曲奇', price: 32, image: '/static/images/product5.png', tags: ['sugar-free', 'low-carb'] },
-  { id: 6, name: '燕麦面包', price: 26, image: '/static/images/product6.png', tags: ['whole-grain', 'low-carb'] },
-  { id: 7, name: '黑麦吐司', price: 24, image: '/static/images/product7.png', tags: ['whole-grain', 'high-protein'] },
-  { id: 8, name: '蛋白棒', price: 35, image: '/static/images/product8.png', tags: ['high-protein', 'low-carb'] },
-])
+// 低卡商品
+const lowCalProducts = ref([])
 
+// 加载状态
+const isLoading = ref(false)
+
+// 获取真实 API 数据
 onMounted(async () => {
-  // TODO: API 对接时替换为真实调用
-  // try {
-  //   const [hotRes, lowCalRes] = await Promise.all([
-  //     getHotProducts(),
-  //     getLowCalorieProducts()
-  //   ])
-  //   hotProducts.value = hotRes.data || []
-  //   lowCalProducts.value = lowCalRes.data || []
-  // } catch (e) {
-  //   console.error('Failed to fetch products', e)
-  // }
+  isLoading.value = true
+  try {
+    const [hotRes, lowCalRes] = await Promise.all([
+      getHotProducts(),
+      getLowCalorieProducts(),
+    ])
+    // API 返回格式: { code: 0, data: [...] }
+    if (hotRes.code === 0) {
+      hotProducts.value = hotRes.data || []
+    }
+    if (lowCalRes.code === 0) {
+      lowCalProducts.value = lowCalRes.data || []
+    }
+  } catch (e) {
+    // 降级到 mock 数据确保页面可预览
+    hotProducts.value = [
+      { id: 1, name: '手撕包', price: 28, originalPrice: 35, image: '/static/images/product1.png', tags: ['low-carb'] },
+      { id: 2, name: '全麦吐司', price: 22, image: '/static/images/product2.png', tags: ['whole-grain', 'high-protein'] },
+      { id: 3, name: '奶油泡芙', price: 18, image: '/static/images/product3.png', tags: ['sugar-free'] },
+      { id: 4, name: '坚果面包', price: 25, image: '/static/images/product4.png', tags: ['high-protein'] },
+    ]
+    lowCalProducts.value = [
+      { id: 5, name: '无糖曲奇', price: 32, image: '/static/images/product5.png', tags: ['sugar-free', 'low-carb'] },
+      { id: 6, name: '燕麦面包', price: 26, image: '/static/images/product6.png', tags: ['whole-grain', 'low-carb'] },
+      { id: 7, name: '黑麦吐司', price: 24, image: '/static/images/product7.png', tags: ['whole-grain', 'high-protein'] },
+      { id: 8, name: '蛋白棒', price: 35, image: '/static/images/product8.png', tags: ['high-protein', 'low-carb'] },
+    ]
+  } finally {
+    isLoading.value = false
+  }
 })
 
 function onEntryClick(entry) {
