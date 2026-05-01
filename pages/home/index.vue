@@ -110,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onPullDownRefresh } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getHotProducts, getLowCalorieProducts } from '@/api/product.js'
 
@@ -147,14 +147,13 @@ const lowCalProducts = ref([])
 const isLoading = ref(false)
 
 // 获取真实 API 数据
-onMounted(async () => {
+async function loadHomeData() {
   isLoading.value = true
   try {
     const [hotRes, lowCalRes] = await Promise.all([
       getHotProducts(),
       getLowCalorieProducts(),
     ])
-    // API 返回格式: { code: 0, data: [...] }
     if (hotRes.code === 0) {
       hotProducts.value = hotRes.data || []
     }
@@ -162,7 +161,6 @@ onMounted(async () => {
       lowCalProducts.value = lowCalRes.data || []
     }
   } catch (e) {
-    // 降级到 mock 数据确保页面可预览
     hotProducts.value = [
       { id: 1, name: '手撕包', price: 28, originalPrice: 35, image: '/static/images/product1.png', tags: ['low-carb'] },
       { id: 2, name: '全麦吐司', price: 22, image: '/static/images/product2.png', tags: ['whole-grain', 'high-protein'] },
@@ -178,6 +176,17 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadHomeData()
+})
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  loadHomeData().finally(() => {
+    uni.stopPullDownRefresh()
+  })
 })
 
 function onEntryClick(entry) {

@@ -80,9 +80,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onPullDownRefresh } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getCouponList, receiveCoupon } from '@/api/coupon.js'
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  loadCoupons().finally(() => {
+    uni.stopPullDownRefresh()
+  })
+})
 
 // 优惠券 Tab
 const couponTabs = [
@@ -101,7 +108,7 @@ const coupons = ref([])
 const isLoading = ref(false)
 
 // 获取真实优惠券数据
-onMounted(async () => {
+async function loadCoupons() {
   isLoading.value = true
   try {
     const res = await getCouponList()
@@ -109,7 +116,6 @@ onMounted(async () => {
       coupons.value = res.data || []
     }
   } catch (e) {
-    // 降级到 mock 数据
     coupons.value = [
       {
         id: 1,
@@ -165,6 +171,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadCoupons()
 })
 
 // 筛选优惠券

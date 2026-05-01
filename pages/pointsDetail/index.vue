@@ -57,9 +57,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onPullDownRefresh } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getMemberInfo, getPointsLogs } from '@/api/member.js'
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  loadPointsData().finally(() => {
+    uni.stopPullDownRefresh()
+  })
+})
 
 // 当前积分
 const currentPoints = ref(0)
@@ -80,7 +87,7 @@ const records = ref([])
 const isLoading = ref(false)
 
 // 获取真实积分数据
-onMounted(async () => {
+async function loadPointsData() {
   isLoading.value = true
   try {
     const [memberRes, pointsRes] = await Promise.all([
@@ -94,7 +101,6 @@ onMounted(async () => {
       records.value = pointsRes.data || []
     }
   } catch (e) {
-    // 降级到 mock 数据
     currentPoints.value = 1280
     records.value = [
       { id: 1, title: '消费获积分', time: '2026-05-02 10:15', points: 68, type: 'income' },
@@ -109,6 +115,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadPointsData()
 })
 
 // 筛选记录

@@ -91,9 +91,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onPullDownRefresh } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getOrderList, cancelOrder } from '@/api/order.js'
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  loadOrders().finally(() => {
+    uni.stopPullDownRefresh()
+  })
+})
 
 // 订单状态 Tab
 const orderTabs = [
@@ -113,17 +120,15 @@ const orders = ref([])
 const isLoading = ref(false)
 
 // 获取真实订单数据
-onMounted(async () => {
+async function loadOrders() {
   isLoading.value = true
   try {
     const res = await getOrderList()
     if (res.code === 0) {
       orders.value = res.data || []
-      // 更新 tab count
       updateTabCounts()
     }
   } catch (e) {
-    // 降级到 mock 数据
     orders.value = [
       {
         id: 1,
@@ -186,6 +191,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadOrders()
 })
 
 function updateTabCounts() {

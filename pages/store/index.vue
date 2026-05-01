@@ -84,9 +84,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onPullDownRefresh } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getStoreList } from '@/api/store.js'
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  loadStores().finally(() => {
+    uni.stopPullDownRefresh()
+  })
+})
 
 // 搜索词
 const searchValue = ref('')
@@ -98,7 +105,7 @@ const stores = ref([])
 const isLoading = ref(false)
 
 // 获取真实门店数据
-onMounted(async () => {
+async function loadStores() {
   isLoading.value = true
   try {
     const res = await getStoreList()
@@ -106,7 +113,6 @@ onMounted(async () => {
       stores.value = res.data || []
     }
   } catch (e) {
-    // 降级到 mock 数据
     stores.value = [
       {
         id: 1,
@@ -148,6 +154,10 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadStores()
 })
 
 // 筛选门店

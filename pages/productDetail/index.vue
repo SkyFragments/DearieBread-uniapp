@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onPullDownRefresh } from 'vue'
 import navbar from '@/components/navbar.vue'
 import productCard from '@/components/productCard.vue'
 import { getProductDetail } from '@/api/product.js'
@@ -149,7 +149,7 @@ const productData = ref({
 const isLoading = ref(false)
 
 // 获取真实 API 数据
-onMounted(async () => {
+async function loadProductDetail() {
   isLoading.value = true
   try {
     const res = await getProductDetail(productId)
@@ -161,6 +161,17 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadProductDetail()
+})
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  loadProductDetail().finally(() => {
+    uni.stopPullDownRefresh()
+  })
 })
 
 // 数量

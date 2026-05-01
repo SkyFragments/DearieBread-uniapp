@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onPullDownRefresh } from 'vue'
 import navbar from '@/components/navbar.vue'
 import productCard from '@/components/productCard.vue'
 import { addToCart } from '@/api/cart.js'
@@ -143,7 +143,7 @@ const filteredProducts = computed(() => {
 })
 
 // 获取真实 API 数据
-onMounted(async () => {
+async function loadProducts() {
   isLoading.value = true
   try {
     const params = {}
@@ -155,7 +155,6 @@ onMounted(async () => {
       products.value = res.data || []
     }
   } catch (e) {
-    // 降级到 mock 数据
     products.value = [
       { id: 1, name: '手撕包', price: 28, originalPrice: 35, image: '/static/images/product1.png', tags: ['low-carb'] },
       { id: 2, name: '全麦吐司', price: 22, image: '/static/images/product2.png', tags: ['whole-grain', 'high-protein'] },
@@ -169,6 +168,17 @@ onMounted(async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+onMounted(() => {
+  loadProducts()
+})
+
+// 下拉刷新
+onPullDownRefresh(() => {
+  loadProducts().finally(() => {
+    uni.stopPullDownRefresh()
+  })
 })
 
 function onSearchInput(e) {
