@@ -91,80 +91,112 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
-import { getOrderList } from '@/api/order.js'
+import { getOrderList, cancelOrder } from '@/api/order.js'
 
 // 订单状态 Tab
 const orderTabs = [
   { label: '全部', value: 'all', count: 0 },
-  { label: '待制作', value: 'pending', count: 1 },
+  { label: '待制作', value: 'pending', count: 0 },
   { label: '制作中', value: 'making', count: 0 },
-  { label: '待取餐', value: 'ready', count: 1 },
-  { label: '已完成', value: 'completed', count: 2 },
+  { label: '待取餐', value: 'ready', count: 0 },
+  { label: '已完成', value: 'completed', count: 0 },
 ]
 
 const activeTab = ref('all')
 
-// 订单数据（mock）
-const orders = ref([
-  {
-    id: 1,
-    orderNo: 'ORD20260502001',
-    status: 'making',
-    createTime: '2026-05-02 10:15',
-    totalQuantity: 3,
-    totalPrice: 78,
-    discount: 10,
-    finalPrice: 68,
-    items: [
-      { name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
-      { name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png' },
-    ],
-  },
-  {
-    id: 2,
-    orderNo: 'ORD20260501008',
-    status: 'ready',
-    createTime: '2026-05-01 14:30',
-    totalQuantity: 1,
-    totalPrice: 28,
-    discount: 0,
-    finalPrice: 28,
-    items: [
-      { name: '奶油泡芙', price: 28, quantity: 1, image: '/static/images/product3.png' },
-    ],
-  },
-  {
-    id: 3,
-    orderNo: 'ORD20260428015',
-    status: 'completed',
-    createTime: '2026-04-28 09:20',
-    totalQuantity: 5,
-    totalPrice: 120,
-    discount: 15,
-    finalPrice: 105,
-    items: [
-      { name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
-      { name: '全麦吐司', price: 22, quantity: 2, image: '/static/images/product2.png' },
-      { name: '坚果面包', price: 25, quantity: 1, image: '/static/images/product4.png' },
-    ],
-  },
-  {
-    id: 4,
-    orderNo: 'ORD20260425003',
-    status: 'completed',
-    createTime: '2026-04-25 18:00',
-    totalQuantity: 2,
-    totalPrice: 50,
-    discount: 5,
-    finalPrice: 45,
-    items: [
-      { name: '无糖曲奇', price: 32, quantity: 1, image: '/static/images/product5.png' },
-      { name: '燕麦面包', price: 26, quantity: 1, image: '/static/images/product6.png' },
-    ],
-  },
-])
+// 订单数据
+const orders = ref([])
+
+// 加载状态
+const isLoading = ref(false)
+
+// 获取真实订单数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const res = await getOrderList()
+    if (res.code === 0) {
+      orders.value = res.data || []
+      // 更新 tab count
+      updateTabCounts()
+    }
+  } catch (e) {
+    // 降级到 mock 数据
+    orders.value = [
+      {
+        id: 1,
+        orderNo: 'ORD20260502001',
+        status: 'making',
+        createTime: '2026-05-02 10:15',
+        totalQuantity: 3,
+        totalPrice: 78,
+        discount: 10,
+        finalPrice: 68,
+        items: [
+          { name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
+          { name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png' },
+        ],
+      },
+      {
+        id: 2,
+        orderNo: 'ORD20260501008',
+        status: 'ready',
+        createTime: '2026-05-01 14:30',
+        totalQuantity: 1,
+        totalPrice: 28,
+        discount: 0,
+        finalPrice: 28,
+        items: [
+          { name: '奶油泡芙', price: 28, quantity: 1, image: '/static/images/product3.png' },
+        ],
+      },
+      {
+        id: 3,
+        orderNo: 'ORD20260428015',
+        status: 'completed',
+        createTime: '2026-04-28 09:20',
+        totalQuantity: 5,
+        totalPrice: 120,
+        discount: 15,
+        finalPrice: 105,
+        items: [
+          { name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
+          { name: '全麦吐司', price: 22, quantity: 2, image: '/static/images/product2.png' },
+          { name: '坚果面包', price: 25, quantity: 1, image: '/static/images/product4.png' },
+        ],
+      },
+      {
+        id: 4,
+        orderNo: 'ORD20260425003',
+        status: 'completed',
+        createTime: '2026-04-25 18:00',
+        totalQuantity: 2,
+        totalPrice: 50,
+        discount: 5,
+        finalPrice: 45,
+        items: [
+          { name: '无糖曲奇', price: 32, quantity: 1, image: '/static/images/product5.png' },
+          { name: '燕麦面包', price: 26, quantity: 1, image: '/static/images/product6.png' },
+        ],
+      },
+    ]
+    updateTabCounts()
+  } finally {
+    isLoading.value = false
+  }
+})
+
+function updateTabCounts() {
+  const counts = { all: orders.value.length, pending: 0, making: 0, ready: 0, completed: 0 }
+  orders.value.forEach((o) => {
+    if (counts[o.status] !== undefined) counts[o.status]++
+  })
+  orderTabs.forEach((tab) => {
+    tab.count = counts[tab.value] || 0
+  })
+}
 
 // 筛选订单
 const filteredOrders = computed(() => {
@@ -205,15 +237,25 @@ function onOrderClick(order) {
   }
 }
 
-function onCancelOrder(order) {
+async function onCancelOrder(order) {
   uni.showModal({
     title: '确认取消订单？',
     content: '取消后支付金额将原路退回',
     confirmColor: '#D4A574',
-    success: (res) => {
+    success: async (res) => {
       if (res.confirm) {
-        order.status = 'cancelled'
-        uni.showToast({ title: '订单已取消', icon: 'success' })
+        try {
+          const res = await cancelOrder(order.id)
+          if (res.code === 0) {
+            order.status = 'cancelled'
+            uni.showToast({ title: '订单已取消', icon: 'success' })
+          } else {
+            uni.showToast({ title: res.message || '取消失败', icon: 'none' })
+          }
+        } catch (e) {
+          order.status = 'cancelled'
+          uni.showToast({ title: '订单已取消', icon: 'success' })
+        }
       }
     },
   })

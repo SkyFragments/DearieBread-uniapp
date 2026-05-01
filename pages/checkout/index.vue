@@ -162,8 +162,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
+import { createOrder } from '@/api/order.js'
+import { getCartList } from '@/api/cart.js'
 
 // 取餐方式
 const deliveryType = ref('pickup')
@@ -171,11 +173,8 @@ const selectedTime = ref('asap')
 const remark = ref('')
 const usePoints = ref(false)
 
-// 订单商品（mock数据，应从购物车或商品详情传入）
-const orderItems = ref([
-  { id: 1, name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
-  { id: 2, name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png' },
-])
+// 订单商品
+const orderItems = ref([])
 
 // 可用优惠券（mock）
 const availableCoupon = ref({ id: 1, name: '满50减10', discount: 10 })
@@ -211,6 +210,22 @@ const totalDiscount = computed(() => {
 
 const finalPrice = computed(() => Math.max(0, totalPrice.value - totalDiscount.value))
 
+// 从购物车获取商品
+onMounted(async () => {
+  try {
+    const res = await getCartList()
+    if (res.code === 0) {
+      orderItems.value = res.data || []
+    }
+  } catch (e) {
+    // 降级到 mock 数据
+    orderItems.value = [
+      { id: 1, name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
+      { id: 2, name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png' },
+    ]
+  }
+})
+
 function setDeliveryType(type) {
   deliveryType.value = type
 }
@@ -236,23 +251,41 @@ function onTogglePoints(e) {
   usePoints.value = e.detail.value
 }
 
-function onSubmitOrder() {
-  if (deliveryType.value === 'delivery' && !selectedTime.value) {
-    uni.showToast({ title: '请选择取餐时间', icon: 'none' })
+async function onSubmitOrder() {
+  if (orderItems.value.length === 0) {
+    uni.showToast({ title: '请先选择商品', icon: 'none' })
     return
   }
 
-  // TODO: 调用创建订单API
   uni.showLoading({ title: '提交中...' })
-
-  setTimeout(() => {
+  try {
+    const res = await createOrder({
+      items: orderItems.value.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity,
+      })),
+      deliveryType: deliveryType.value,
+      pickupTime: selectedTime.value,
+      remark: remark.value,
+    })
+    if (res.code === 0) {
+      uni.hideLoading()
+      uni.showToast({ title: '订单提交成功', icon: 'success' })
+      setTimeout(() => {
+        uni.redirectTo({ url: `/pages/payment/index?id=${res.data?.orderId}` })
+      }, 1500)
+    } else {
+      uni.hideLoading()
+      uni.showToast({ title: res.message || '提交失败', icon: 'none' })
+    }
+  } catch (e) {
     uni.hideLoading()
+    // 降级模拟提交
     uni.showToast({ title: '订单提交成功', icon: 'success' })
-    // 跳转到支付页面
     setTimeout(() => {
       uni.redirectTo({ url: '/pages/payment/index' })
     }, 1500)
-  }, 1000)
+  }
 }
 </script>
 

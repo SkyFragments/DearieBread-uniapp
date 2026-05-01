@@ -115,31 +115,29 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
+import { getOrderDetail } from '@/api/order.js'
 
 // 获取页面参数
 const pageOptions = uni.getPageOptions()
 const orderId = pageOptions?.id || 'ORD20260502001'
 
-// 订单状态：pending-待制作, making-制作中, ready-待取餐, completed-已完成, cancelled-已取消
+// 订单状态
 const orderInfo = ref({
   id: orderId,
-  orderNo: 'ORD20260502001234',
-  createTime: '2026-05-02 10:15:32',
-  status: 'making', // 当前模拟状态：制作中
+  orderNo: 'ORD' + Date.now().toString().slice(-10),
+  createTime: new Date().toLocaleString('zh-CN'),
+  status: 'pending',
   deliveryType: 'pickup',
   storeName: 'Dearie Bread 旗舰店',
   storeAddress: '朝阳区建国路88号SOHO现代城1层',
   deliveryAddress: '',
-  pickupTime: '10:45 左右',
-  totalPrice: 78,
-  discount: 10,
-  finalPrice: 68,
-  items: [
-    { id: 1, name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
-    { id: 2, name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png' },
-  ],
+  pickupTime: '约15分钟后',
+  totalPrice: 0,
+  discount: 0,
+  finalPrice: 0,
+  items: [],
 })
 
 // 状态配置
@@ -161,6 +159,18 @@ const currentStep = computed(() => {
 const statusIcon = computed(() => statusConfig[orderInfo.value.status]?.icon || '⏰')
 const statusText = computed(() => statusConfig[orderInfo.value.status]?.text || '处理中')
 const statusDesc = computed(() => statusConfig[orderInfo.value.status]?.desc || '')
+
+// 获取真实订单数据
+onMounted(async () => {
+  try {
+    const res = await getOrderDetail(orderId)
+    if (res.code === 0 && res.data) {
+      orderInfo.value = { ...orderInfo.value, ...res.data }
+    }
+  } catch (e) {
+    // 使用默认数据
+  }
+})
 
 function handleBack() {
   uni.navigateBack()

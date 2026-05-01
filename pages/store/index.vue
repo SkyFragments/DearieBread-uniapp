@@ -84,52 +84,71 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getStoreList } from '@/api/store.js'
 
 // 搜索词
 const searchValue = ref('')
 
-// 门店数据（mock）
-const stores = ref([
-  {
-    id: 1,
-    name: 'Dearie Bread 旗舰店',
-    address: '朝阳区建国路88号SOHO现代城1层',
-    distance: 500,
-    hours: '08:00-22:00',
-    phone: '400-888-9999',
-    tags: ['认证旗舰店', '人气TOP'],
-  },
-  {
-    id: 2,
-    name: 'Dearie Bread 三里屯店',
-    address: '朝阳区三里屯路19号三里屯太古里南区S2-34',
-    distance: 1200,
-    hours: '10:00-22:00',
-    phone: '400-888-9998',
-    tags: ['潮流打卡'],
-  },
-  {
-    id: 3,
-    name: 'Dearie Bread 国贸店',
-    address: '朝阳区建国门外大街1号国贸商城B1层B1012',
-    distance: 2000,
-    hours: '09:00-21:00',
-    phone: '400-888-9997',
-    tags: ['商务优选'],
-  },
-  {
-    id: 4,
-    name: 'Dearie Bread 望京店',
-    address: '朝阳区望京街望京SOHO T2层L2-2012',
-    distance: 3500,
-    hours: '08:00-20:00',
-    phone: '400-888-9996',
-    tags: ['写字楼优选'],
-  },
-])
+// 门店数据
+const stores = ref([])
+
+// 加载状态
+const isLoading = ref(false)
+
+// 获取真实门店数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const res = await getStoreList()
+    if (res.code === 0) {
+      stores.value = res.data || []
+    }
+  } catch (e) {
+    // 降级到 mock 数据
+    stores.value = [
+      {
+        id: 1,
+        name: 'Dearie Bread 旗舰店',
+        address: '朝阳区建国路88号SOHO现代城1层',
+        distance: 500,
+        hours: '08:00-22:00',
+        phone: '400-888-9999',
+        tags: ['认证旗舰店', '人气TOP'],
+      },
+      {
+        id: 2,
+        name: 'Dearie Bread 三里屯店',
+        address: '朝阳区三里屯路19号三里屯太古里南区S2-34',
+        distance: 1200,
+        hours: '10:00-22:00',
+        phone: '400-888-9998',
+        tags: ['潮流打卡'],
+      },
+      {
+        id: 3,
+        name: 'Dearie Bread 国贸店',
+        address: '朝阳区建国门外大街1号国贸商城B1层B1012',
+        distance: 2000,
+        hours: '09:00-21:00',
+        phone: '400-888-9997',
+        tags: ['商务优选'],
+      },
+      {
+        id: 4,
+        name: 'Dearie Bread 望京店',
+        address: '朝阳区望京街望京SOHO T2层L2-2012',
+        distance: 3500,
+        hours: '08:00-20:00',
+        phone: '400-888-9996',
+        tags: ['写字楼优选'],
+      },
+    ]
+  } finally {
+    isLoading.value = false
+  }
+})
 
 // 筛选门店
 const filteredStores = computed(() => {

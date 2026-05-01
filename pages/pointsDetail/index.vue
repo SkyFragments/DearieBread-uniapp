@@ -57,11 +57,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
+import { getMemberInfo, getPointsLogs } from '@/api/member.js'
 
 // 当前积分
-const currentPoints = ref(1280)
+const currentPoints = ref(0)
 
 // 筛选 Tab
 const filterTabs = [
@@ -72,17 +73,43 @@ const filterTabs = [
 
 const activeFilter = ref('all')
 
-// 积分记录（mock）
-const records = ref([
-  { id: 1, title: '消费获积分', time: '2026-05-02 10:15', points: 68, type: 'income' },
-  { id: 2, title: '签到奖励', time: '2026-05-02 09:00', points: 5, type: 'income' },
-  { id: 3, title: '兑换优惠券', time: '2026-05-01 15:30', points: 100, type: 'expense' },
-  { id: 4, title: '消费获积分', time: '2026-04-28 09:20', points: 120, type: 'income' },
-  { id: 5, title: '兑换礼品', time: '2026-04-25 18:00', points: 200, type: 'expense' },
-  { id: 6, title: '邀请好友奖励', time: '2026-04-20 14:00', points: 50, type: 'income' },
-  { id: 7, title: '消费获积分', time: '2026-04-18 11:30', points: 88, type: 'income' },
-  { id: 8, title: '生日双倍积分', time: '2026-04-15 00:00', points: 200, type: 'income' },
-])
+// 积分记录
+const records = ref([])
+
+// 加载状态
+const isLoading = ref(false)
+
+// 获取真实积分数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const [memberRes, pointsRes] = await Promise.all([
+      getMemberInfo(),
+      getPointsLogs(),
+    ])
+    if (memberRes.code === 0 && memberRes.data) {
+      currentPoints.value = memberRes.data.points || 0
+    }
+    if (pointsRes.code === 0) {
+      records.value = pointsRes.data || []
+    }
+  } catch (e) {
+    // 降级到 mock 数据
+    currentPoints.value = 1280
+    records.value = [
+      { id: 1, title: '消费获积分', time: '2026-05-02 10:15', points: 68, type: 'income' },
+      { id: 2, title: '签到奖励', time: '2026-05-02 09:00', points: 5, type: 'income' },
+      { id: 3, title: '兑换优惠券', time: '2026-05-01 15:30', points: 100, type: 'expense' },
+      { id: 4, title: '消费获积分', time: '2026-04-28 09:20', points: 120, type: 'income' },
+      { id: 5, title: '兑换礼品', time: '2026-04-25 18:00', points: 200, type: 'expense' },
+      { id: 6, title: '邀请好友奖励', time: '2026-04-20 14:00', points: 50, type: 'income' },
+      { id: 7, title: '消费获积分', time: '2026-04-18 11:30', points: 88, type: 'income' },
+      { id: 8, title: '生日双倍积分', time: '2026-04-15 00:00', points: 200, type: 'income' },
+    ]
+  } finally {
+    isLoading.value = false
+  }
+})
 
 // 筛选记录
 const filteredRecords = computed(() => {

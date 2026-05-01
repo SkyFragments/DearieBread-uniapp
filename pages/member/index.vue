@@ -84,20 +84,38 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
 import { getMemberInfo } from '@/api/member.js'
 
-// 用户信息（mock数据）
+// 用户信息
 const userInfo = ref({
   id: 1,
-  nickname: '张小姐',
+  nickname: 'Dearie 会员',
   avatar: '/static/images/avatar-default.png',
   level: '银卡会员',
-  points: 1280,
-  coupons: 3,
-  balance: 88.50,
-  growth: 680,
+  points: 0,
+  coupons: 0,
+  balance: 0,
+  growth: 0,
+})
+
+// 加载状态
+const isLoading = ref(false)
+
+// 获取真实会员数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const res = await getMemberInfo()
+    if (res.code === 0 && res.data) {
+      userInfo.value = res.data
+    }
+  } catch (e) {
+    // 使用默认数据
+  } finally {
+    isLoading.value = false
+  }
 })
 
 // 会员等级配置

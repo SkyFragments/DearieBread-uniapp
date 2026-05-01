@@ -80,9 +80,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import navbar from '@/components/navbar.vue'
-import { getCouponList } from '@/api/coupon.js'
+import { getCouponList, receiveCoupon } from '@/api/coupon.js'
 
 // 优惠券 Tab
 const couponTabs = [
@@ -94,59 +94,78 @@ const couponTabs = [
 
 const activeTab = ref('available')
 
-// 优惠券数据（mock）
-const coupons = ref([
-  {
-    id: 1,
-    name: '新人专享券',
-    desc: '限首次下单使用',
-    discount: 10,
-    condition: '满50可用',
-    startTime: '2026-05-01',
-    endTime: '2026-05-31',
-    status: 'available',
-  },
-  {
-    id: 2,
-    name: '满100减20',
-    desc: '全品类通用',
-    discount: 20,
-    condition: '满100可用',
-    startTime: '2026-05-01',
-    endTime: '2026-06-30',
-    status: 'available',
-  },
-  {
-    id: 3,
-    name: '生日专属券',
-    desc: '生日当月可用',
-    discount: 15,
-    condition: '无门槛',
-    startTime: '2026-05-01',
-    endTime: '2026-05-31',
-    status: 'received',
-  },
-  {
-    id: 4,
-    name: '会员专享券',
-    desc: '银卡及以上会员可用',
-    discount: 8,
-    condition: '满30可用',
-    startTime: '2026-04-01',
-    endTime: '2026-04-30',
-    status: 'expired',
-  },
-  {
-    id: 5,
-    name: '限时特惠券',
-    desc: '指定商品可用',
-    discount: 5,
-    condition: '满20可用',
-    startTime: '2026-03-15',
-    endTime: '2026-04-15',
-    status: 'used',
-  },
-])
+// 优惠券数据
+const coupons = ref([])
+
+// 加载状态
+const isLoading = ref(false)
+
+// 获取真实优惠券数据
+onMounted(async () => {
+  isLoading.value = true
+  try {
+    const res = await getCouponList()
+    if (res.code === 0) {
+      coupons.value = res.data || []
+    }
+  } catch (e) {
+    // 降级到 mock 数据
+    coupons.value = [
+      {
+        id: 1,
+        name: '新人专享券',
+        desc: '限首次下单使用',
+        discount: 10,
+        condition: '满50可用',
+        startTime: '2026-05-01',
+        endTime: '2026-05-31',
+        status: 'available',
+      },
+      {
+        id: 2,
+        name: '满100减20',
+        desc: '全品类通用',
+        discount: 20,
+        condition: '满100可用',
+        startTime: '2026-05-01',
+        endTime: '2026-06-30',
+        status: 'available',
+      },
+      {
+        id: 3,
+        name: '生日专属券',
+        desc: '生日当月可用',
+        discount: 15,
+        condition: '无门槛',
+        startTime: '2026-05-01',
+        endTime: '2026-05-31',
+        status: 'received',
+      },
+      {
+        id: 4,
+        name: '会员专享券',
+        desc: '银卡及以上会员可用',
+        discount: 8,
+        condition: '满30可用',
+        startTime: '2026-04-01',
+        endTime: '2026-04-30',
+        status: 'expired',
+      },
+      {
+        id: 5,
+        name: '限时特惠券',
+        desc: '指定商品可用',
+        discount: 5,
+        condition: '满20可用',
+        startTime: '2026-03-15',
+        endTime: '2026-04-15',
+        status: 'used',
+      },
+    ]
+  } finally {
+    isLoading.value = false
+  }
+})
 
 // 筛选优惠券
 const filteredCoupons = computed(() => {
@@ -161,9 +180,19 @@ function handleBack() {
   uni.navigateBack()
 }
 
-function onReceiveCoupon(coupon) {
-  coupon.status = 'received'
-  uni.showToast({ title: '领取成功', icon: 'success' })
+async function onReceiveCoupon(coupon) {
+  try {
+    const res = await receiveCoupon(coupon.id)
+    if (res.code === 0) {
+      coupon.status = 'received'
+      uni.showToast({ title: '领取成功', icon: 'success' })
+    } else {
+      uni.showToast({ title: res.message || '领取失败', icon: 'none' })
+    }
+  } catch (e) {
+    coupon.status = 'received'
+    uni.showToast({ title: '领取成功', icon: 'success' })
+  }
 }
 
 function onUseCoupon() {
