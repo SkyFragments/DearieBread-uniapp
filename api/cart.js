@@ -21,10 +21,10 @@ export function addToCart(data) {
 
 /**
  * 更新购物车商品数量
- * @param {Object} data { cartId, quantity }
+ * @param {Object} data { id, quantity }
  */
 export function updateCartItem(data) {
-  return put('/cart/update', data)
+  return post('/cart/update', data)
 }
 
 /**
@@ -32,7 +32,7 @@ export function updateCartItem(data) {
  * @param {number} cartId 购物车 ID
  */
 export function removeFromCart(cartId) {
-  return del(`/cart/remove/${cartId}`)
+  return post(`/cart/delete/${cartId}`, {})
 }
 
 /**

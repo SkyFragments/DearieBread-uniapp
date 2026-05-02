@@ -212,17 +212,30 @@ const finalPrice = computed(() => Math.max(0, totalPrice.value - totalDiscount.v
 
 // 从购物车获取商品
 onMounted(async () => {
-  try {
-    const res = await getCartList()
-    if (res.code === 0) {
-      orderItems.value = res.data || []
+  // Check for items passed from product detail "立即购买"
+  const pages = getCurrentPages()
+  const currentPage = pages[pages.length - 1]
+  const options = currentPage?.options || {}
+  if (options.items) {
+    try {
+      orderItems.value = JSON.parse(decodeURIComponent(options.items))
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    // 降级到 mock 数据
-    orderItems.value = [
-      { id: 1, name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
-      { id: 2, name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png' },
-    ]
+  }
+  if (orderItems.value.length === 0) {
+    try {
+      const res = await getCartList()
+      if (res.code === 0) {
+        orderItems.value = res.data || []
+      }
+    } catch (e) {
+      // 降级到 mock 数据
+      orderItems.value = [
+        { id: 1, name: '手撕包', price: 28, quantity: 2, image: '/static/images/product1.png' },
+        { id: 2, name: '全麦吐司', price: 22, quantity: 1, image: '/static/images/product2.png' },
+      ]
+    }
   }
 })
 
@@ -251,6 +264,17 @@ function onTogglePoints(e) {
   usePoints.value = e.detail.value
 }
 
+function getPickupTimeStr(value) {
+  const now = new Date()
+  let addMinutes = 15
+  if (value === '30min') addMinutes = 30
+  else if (value === '1hour') addMinutes = 60
+  else if (value === '2hour') addMinutes = 120
+  const d = new Date(now.getTime() + addMinutes * 60000)
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
+}
+
 async function onSubmitOrder() {
   if (orderItems.value.length === 0) {
     uni.showToast({ title: '请先选择商品', icon: 'none' })
@@ -260,19 +284,22 @@ async function onSubmitOrder() {
   uni.showLoading({ title: '提交中...' })
   try {
     const res = await createOrder({
+      storeId: '1',
       items: orderItems.value.map((item) => ({
-        productId: item.id,
+        productId: item.productId || item.id,
         quantity: item.quantity,
       })),
-      deliveryType: deliveryType.value,
-      pickupTime: selectedTime.value,
+      deliveryType: deliveryType.value === 'pickup' ? 0 : 1,
+      pickupTime: getPickupTimeStr(selectedTime.value),
       remark: remark.value,
     })
     if (res.code === 0) {
       uni.hideLoading()
       uni.showToast({ title: '订单提交成功', icon: 'success' })
       setTimeout(() => {
-        uni.redirectTo({ url: `/pages/payment/index?id=${res.data?.orderId}` })
+        const orderId = res.data?.orderId
+        const amount = finalPrice.value
+        uni.redirectTo({ url: `/pages/payment/index?id=${orderId}&amount=${amount}` })
       }, 1500)
     } else {
       uni.hideLoading()
@@ -281,9 +308,10 @@ async function onSubmitOrder() {
   } catch (e) {
     uni.hideLoading()
     // 降级模拟提交
+    const mockOrderId = 'ORD' + Date.now().toString().slice(-10)
     uni.showToast({ title: '订单提交成功', icon: 'success' })
     setTimeout(() => {
-      uni.redirectTo({ url: '/pages/payment/index' })
+      uni.redirectTo({ url: `/pages/payment/index?id=${mockOrderId}&amount=${finalPrice.value}` })
     }, 1500)
   }
 }

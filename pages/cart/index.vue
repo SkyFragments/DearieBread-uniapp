@@ -196,19 +196,32 @@ function toggleAll() {
 
 function updateQuantity(id, delta) {
   const item = cartItems.value.find((i) => i.id === id)
-  if (item) {
-    const newQty = item.quantity + delta
-    if (newQty >= 1) {
-      item.quantity = newQty
-    }
-  }
+  if (!item) return
+  const newQty = Math.max(1, item.quantity + delta)
+  const oldQty = item.quantity
+  // Optimistic update
+  item.quantity = newQty
+
+  updateCartItem({ id, quantity: newQty }).catch(() => {
+    // Rollback on failure
+    item.quantity = oldQty
+    uni.showToast({ title: '更新失败', icon: 'none' })
+  })
 }
 
 function removeItem(id) {
   const index = cartItems.value.findIndex((i) => i.id === id)
-  if (index > -1) {
-    cartItems.value.splice(index, 1)
-  }
+  if (index === -1) return
+  // Snapshot for rollback
+  const removed = cartItems.value[index]
+  // Optimistic remove
+  cartItems.value.splice(index, 1)
+
+  removeFromCart(id).catch(() => {
+    // Rollback
+    cartItems.value.splice(index, 0, removed)
+    uni.showToast({ title: '删除失败', icon: 'none' })
+  })
 }
 
 function goCheckout() {

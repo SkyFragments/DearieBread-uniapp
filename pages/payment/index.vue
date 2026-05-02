@@ -58,14 +58,13 @@
 <script setup>
 import { ref } from 'vue'
 import navbar from '@/components/navbar.vue'
+import { createPayment } from '@/api/order.js'
 
 // 获取页面参数
 const pageOptions = uni.getPageOptions()
 const orderId = pageOptions?.id || ''
-
-// 模拟订单数据
-const orderNo = ref('ORD' + Date.now().toString().slice(-10))
-const orderAmount = ref(68.00)
+const orderAmount = ref(Number(pageOptions?.amount) || 0)
+const orderNo = ref(orderId || 'ORD' + Date.now().toString().slice(-10))
 const isProcessing = ref(false)
 
 // 支付方式
@@ -95,20 +94,37 @@ function onSelectMethod(methodId) {
 }
 
 function onConfirmPay() {
-  if (isProcessing.value) return
+  if (isProcessing.value || !orderId) return
 
   isProcessing.value = true
 
-  // 模拟支付过程
-  setTimeout(() => {
-    isProcessing.value = false
-    uni.showToast({ title: '支付成功', icon: 'success' })
+  const openId = uni.getStorageSync('openid') || ''
 
-    // 跳转到订单追踪页
-    setTimeout(() => {
-      uni.redirectTo({ url: `/pages/orderTracking/index?id=${orderId || 'new'}` })
-    }, 1500)
-  }, 2000)
+  createPayment(orderId, openId)
+    .then((res) => {
+      if (res.code === 0) {
+        uni.showToast({ title: '支付成功', icon: 'success' })
+        setTimeout(() => {
+          uni.redirectTo({ url: `/pages/orderTracking/index?id=${orderId}` })
+        }, 1500)
+      } else {
+        uni.showToast({ title: res.msg || '支付失败', icon: 'none' })
+        isProcessing.value = false
+      }
+    })
+    .catch(() => {
+      // Fallback for offline development
+      const isDev = process.env.NODE_ENV !== 'production'
+      if (isDev) {
+        uni.showToast({ title: '[测试] 支付模拟成功', icon: 'success' })
+        setTimeout(() => {
+          uni.redirectTo({ url: `/pages/orderTracking/index?id=${orderId}` })
+        }, 1500)
+      } else {
+        uni.showToast({ title: '支付失败，请检查网络', icon: 'none' })
+        isProcessing.value = false
+      }
+    })
 }
 </script>
 

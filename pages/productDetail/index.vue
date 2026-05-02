@@ -248,8 +248,15 @@ async function onAddCart() {
 }
 
 function onBuyNow() {
-  // TODO: 直接跳转结算页
-  uni.showToast({ title: '立即购买功能开发中', icon: 'none' })
+  const selectedItem = {
+    productId: productId,
+    quantity: quantity.value,
+    name: productData.value.name,
+    price: productData.value.price,
+    image: productData.value.image,
+  }
+  const itemStr = encodeURIComponent(JSON.stringify([selectedItem]))
+  uni.navigateTo({ url: `/pages/checkout/index?items=${itemStr}` })
 }
 </script>
 

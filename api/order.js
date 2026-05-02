@@ -61,3 +61,12 @@ export function getPickupCode(orderId) {
 export function remindOrder(orderId) {
   return post(`/order/remind/${orderId}`)
 }
+
+/**
+ * 发起支付
+ * @param {string} orderId 订单 ID
+ * @param {string} openId 微信 openId
+ */
+export function createPayment(orderId, openId) {
+  return post('/pay/create', { orderId, openId })
+}
